@@ -99,11 +99,19 @@
         padding: 0.9rem 1rem;
         border-bottom: 1px solid var(--border);
         background: #f1f5ff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.45rem;
       }
 
       .panel-header h2 {
         margin: 0;
         font-size: 1.1rem;
+      }
+
+      .reset-column-btn {
+        white-space: nowrap;
       }
 
       .panel-body {
@@ -367,7 +375,10 @@
 
     <template id="section-template">
       <section class="panel">
-        <header class="panel-header"><h2></h2></header>
+        <header class="panel-header">
+          <h2></h2>
+          <button class="reset-column-btn" type="button">Reset colonne</button>
+        </header>
         <div class="panel-body">
           <p class="hint hint-input">1) Coller le code original de la langue.</p>
           <textarea class="raw-input" spellcheck="false"></textarea>
@@ -430,6 +441,7 @@
           descriptionLabel: "Description",
           linkLabel: "Lien URL",
           removeButton: "Supprimer",
+          resetColumnButton: "Reset colonne",
           openImage: "Ouvrir l'image",
           openLink: "Ouvrir le lien",
           imageInvalid: "Ajoutez une URL valide (http/https)",
@@ -446,6 +458,7 @@
           msgCopied: "Code copié dans le presse-papiers.",
           msgCopiedFallback: "Code copié (méthode de secours).",
           previewEmpty: "Aucun aperçu pour l'instant. Chargez ou ajoutez une bannière.",
+          msgColumnReset: "Colonne réinitialisée.",
         },
         en: {
           toolLangLabel: "Tool language:",
@@ -471,6 +484,7 @@
           descriptionLabel: "Description",
           linkLabel: "Link URL",
           removeButton: "Remove",
+          resetColumnButton: "Reset column",
           openImage: "Open image",
           openLink: "Open link",
           imageInvalid: "Add a valid URL (http/https)",
@@ -487,6 +501,7 @@
           msgCopied: "Code copied to clipboard.",
           msgCopiedFallback: "Code copied (fallback method).",
           previewEmpty: "No preview yet. Load or add a banner.",
+          msgColumnReset: "Column reset.",
         },
       };
 
@@ -560,6 +575,7 @@
           this.root.querySelector(".load-btn").addEventListener("click", () => this.loadFromInput());
           this.root.querySelector(".add-btn").addEventListener("click", () => this.addItem());
           this.root.querySelector(".copy-btn").addEventListener("click", () => this.copyOutput());
+          this.root.querySelector(".reset-column-btn").addEventListener("click", () => this.resetColumn());
           this.root.querySelector(".prev-btn").addEventListener("click", () => this.goToPreviousSlide());
           this.root.querySelector(".next-btn").addEventListener("click", () => this.goToNextSlide());
 
@@ -574,6 +590,7 @@
           this.root.querySelector(".load-btn").textContent = t("loadButton");
           this.root.querySelector(".add-btn").textContent = t("addButton");
           this.root.querySelector(".copy-btn").textContent = t("copyButton");
+          this.root.querySelector(".reset-column-btn").textContent = t("resetColumnButton");
           this.root.querySelector(".prev-btn").textContent = t("prevButton");
           this.root.querySelector(".next-btn").textContent = t("nextButton");
           this.renderItems();
@@ -620,6 +637,15 @@
           this.renderItems();
           this.updateOutputAndPreview();
           this.setMessage(t("msgAdded"));
+        }
+
+        resetColumn() {
+          this.rawInput.value = "";
+          this.data = [];
+          this.slideIndex = 0;
+          this.itemsContainer.textContent = "";
+          this.updateOutputAndPreview();
+          this.setMessage(t("msgColumnReset"));
         }
 
         removeItem(index) {

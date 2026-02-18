@@ -61,6 +61,25 @@
         margin: 0.25rem 0;
       }
 
+      .tool-lang {
+        margin: 0 0 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        flex-wrap: wrap;
+      }
+
+      .tool-lang-label {
+        font-size: 0.92rem;
+        color: var(--muted);
+      }
+
+      .lang-btn.active {
+        background: var(--primary);
+        color: #fff;
+        border-color: transparent;
+      }
+
       .layout {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -178,6 +197,35 @@
         color: #4b5563;
       }
 
+      .image-tools {
+        margin-top: 0.35rem;
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+      }
+
+      .image-link {
+        font-size: 0.83rem;
+        color: var(--primary);
+        text-decoration: none;
+      }
+
+      .image-link:hover {
+        text-decoration: underline;
+      }
+
+      .image-link[aria-disabled="true"] {
+        color: #94a3b8;
+        pointer-events: none;
+        text-decoration: none;
+        cursor: not-allowed;
+      }
+
+      .image-status {
+        font-size: 0.78rem;
+        color: var(--muted);
+      }
+
       .output-wrap {
         margin-top: 1rem;
       }
@@ -272,16 +320,21 @@
   </head>
   <body>
     <main>
-      <h1>Générateur de code carrousel (FR / EN)</h1>
-      <p class="intro">Travaillez une langue à la fois. Collez le code d’origine, modifiez les bannières, puis copiez le code final pour la publication.</p>
-      <section class="guide" aria-label="Guide d'utilisation">
-        <p><strong>Comment procéder (sans connaissance en code) :</strong></p>
+      <div class="tool-lang">
+        <span id="tool-lang-label" class="tool-lang-label">Langue de l’outil :</span>
+        <button class="lang-btn active" data-ui-lang="fr" type="button">Français</button>
+        <button class="lang-btn" data-ui-lang="en" type="button">English</button>
+      </div>
+      <h1 id="page-title">Générateur de code carrousel (FR / EN)</h1>
+      <p id="page-intro" class="intro">Travaillez une langue à la fois. Collez le code d’origine, modifiez les bannières, puis copiez le code final pour la publication.</p>
+      <section id="guide-section" class="guide" aria-label="Guide d'utilisation">
+        <p id="guide-title"><strong>Comment procéder (sans connaissance en code) :</strong></p>
         <ol>
-          <li>Choisissez une langue (Français ou English).</li>
-          <li>Collez le <strong>code source</strong> dans la première zone et cliquez sur <strong>Charger dans le formulaire</strong>.</li>
-          <li>Modifiez les champs (image, description, lien), ajoutez/supprimez des bannières ou glissez-déposez pour changer l'ordre.</li>
-          <li>Vérifiez le résultat dans l’aperçu en bas (défilement auto + boutons précédent/suivant).</li>
-          <li>Copiez le <strong>code final</strong> avec le bouton prévu et répétez pour l’autre langue.</li>
+          <li id="guide-step-1">Choisissez une langue (Français ou English).</li>
+          <li id="guide-step-2">Collez le <strong>code source</strong> dans la première zone et cliquez sur <strong>Charger dans le formulaire</strong>.</li>
+          <li id="guide-step-3">Modifiez les champs (image, description, lien), ajoutez/supprimez des bannières ou glissez-déposez pour changer l'ordre.</li>
+          <li id="guide-step-4">Vérifiez le résultat dans l’aperçu en bas (défilement auto + boutons précédent/suivant).</li>
+          <li id="guide-step-5">Copiez le <strong>code final</strong> avec le bouton prévu et répétez pour l’autre langue.</li>
         </ol>
       </section>
 
@@ -292,7 +345,7 @@
       <section class="panel">
         <header class="panel-header"><h2></h2></header>
         <div class="panel-body">
-          <p class="hint">1) Coller le code original de la langue.</p>
+          <p class="hint hint-input">1) Coller le code original de la langue.</p>
           <textarea class="raw-input" spellcheck="false"></textarea>
           <div class="toolbar">
             <button class="primary load-btn" type="button">Charger dans le formulaire</button>
@@ -300,11 +353,11 @@
           </div>
           <p class="message"></p>
 
-          <p class="hint">Glissez-déposez les bannières pour changer leur ordre.</p>
+          <p class="hint hint-reorder">Glissez-déposez les bannières pour changer leur ordre. Vous pouvez aussi ouvrir chaque image dans un nouvel onglet.</p>
           <div class="items"></div>
 
           <div class="output-wrap">
-            <p class="hint">2) Code final copiable</p>
+            <p class="hint hint-output">2) Code final copiable</p>
             <textarea class="raw-output" readonly spellcheck="false"></textarea>
             <div class="toolbar">
               <button class="copy-btn" type="button">Copier le code</button>
@@ -328,6 +381,114 @@
         openInNewTab: false,
       };
 
+      const UI_TEXTS = {
+        fr: {
+          toolLangLabel: "Langue de l’outil :",
+          pageTitle: "Générateur de code carrousel (FR / EN)",
+          pageIntro: "Travaillez une langue à la fois. Collez le code d’origine, modifiez les bannières, puis copiez le code final pour la publication.",
+          guideAria: "Guide d'utilisation",
+          guideTitleHtml: "<strong>Comment procéder (sans connaissance en code) :</strong>",
+          guideStep1: "Choisissez la langue de l’outil (Français ou English).",
+          guideStep2Html: "Collez le <strong>code source</strong> dans la première zone et cliquez sur <strong>Charger dans le formulaire</strong>.",
+          guideStep3: "Modifiez les champs (image, description, lien), ajoutez/supprimez des bannières ou glissez-déposez pour changer l'ordre.",
+          guideStep4: "Vérifiez le résultat dans l’aperçu en bas (défilement auto + boutons précédent/suivant).",
+          guideStep5Html: "Copiez le <strong>code final</strong> avec le bouton prévu et répétez pour l’autre langue.",
+          hintInput: "1) Coller le code original de la langue.",
+          hintReorder: "Glissez-déposez les bannières pour changer leur ordre. Vous pouvez aussi ouvrir chaque image dans un nouvel onglet.",
+          hintOutput: "2) Code final copiable",
+          loadButton: "Charger dans le formulaire",
+          addButton: "+ Ajouter une bannière",
+          copyButton: "Copier le code",
+          prevButton: "◀ Précédent",
+          nextButton: "Suivant ▶",
+          itemTitle: "Bannière #{{index}}",
+          imageLabel: "Image URL",
+          descriptionLabel: "Description",
+          linkLabel: "Lien URL",
+          removeButton: "Supprimer",
+          openImage: "Ouvrir l'image",
+          imageInvalid: "Ajoutez une URL valide (http/https)",
+          imageCheck: "Vérifier l'image",
+          msgPasteCode: "Veuillez coller un code avant de charger.",
+          msgCodeArray: "Le code doit être un tableau d'objets.",
+          msgLoaded: "{{count}} bannière(s) chargée(s).",
+          msgInvalid: "Code invalide: {{error}}",
+          msgAdded: "Nouvelle bannière ajoutée.",
+          msgRemoved: "Bannière supprimée.",
+          msgReordered: "Ordre des bannières mis à jour.",
+          msgCopied: "Code copié dans le presse-papiers.",
+          msgCopiedFallback: "Code copié (méthode de secours).",
+          previewEmpty: "Aucun aperçu pour l'instant. Chargez ou ajoutez une bannière.",
+        },
+        en: {
+          toolLangLabel: "Tool language:",
+          pageTitle: "Carousel code generator (FR / EN)",
+          pageIntro: "Work one language at a time. Paste the original code, edit the banners, then copy the final code for publishing.",
+          guideAria: "Usage guide",
+          guideTitleHtml: "<strong>How to proceed (no coding knowledge required):</strong>",
+          guideStep1: "Choose the tool language (Français or English).",
+          guideStep2Html: "Paste the <strong>source code</strong> in the first box and click <strong>Load into the form</strong>.",
+          guideStep3: "Edit fields (image, description, link), add/remove banners, or drag and drop to change order.",
+          guideStep4: "Check the result in the preview below (auto-play + previous/next buttons).",
+          guideStep5Html: "Copy the <strong>final code</strong> with the button, then repeat for the other language section.",
+          hintInput: "1) Paste the original code for this section.",
+          hintReorder: "Drag and drop banners to change order. You can also open each image in a new tab.",
+          hintOutput: "2) Copy-ready final code",
+          loadButton: "Load into the form",
+          addButton: "+ Add banner",
+          copyButton: "Copy code",
+          prevButton: "◀ Previous",
+          nextButton: "Next ▶",
+          itemTitle: "Banner #{{index}}",
+          imageLabel: "Image URL",
+          descriptionLabel: "Description",
+          linkLabel: "Link URL",
+          removeButton: "Remove",
+          openImage: "Open image",
+          imageInvalid: "Add a valid URL (http/https)",
+          imageCheck: "Check image",
+          msgPasteCode: "Please paste code before loading.",
+          msgCodeArray: "Code must be an array of objects.",
+          msgLoaded: "{{count}} banner(s) loaded.",
+          msgInvalid: "Invalid code: {{error}}",
+          msgAdded: "New banner added.",
+          msgRemoved: "Banner removed.",
+          msgReordered: "Banner order updated.",
+          msgCopied: "Code copied to clipboard.",
+          msgCopiedFallback: "Code copied (fallback method).",
+          previewEmpty: "No preview yet. Load or add a banner.",
+        },
+      };
+
+      let currentUiLang = "fr";
+
+      function t(key, vars = {}) {
+        const source = UI_TEXTS[currentUiLang] ?? UI_TEXTS.fr;
+        let text = source[key] ?? key;
+        Object.entries(vars).forEach(([name, value]) => {
+          text = text.replaceAll(`{{${name}}}`, String(value));
+        });
+        return text;
+      }
+
+      function applyPageLanguage() {
+        document.documentElement.lang = currentUiLang;
+        document.getElementById("tool-lang-label").textContent = t("toolLangLabel");
+        document.getElementById("page-title").textContent = t("pageTitle");
+        document.getElementById("page-intro").textContent = t("pageIntro");
+        const guide = document.getElementById("guide-section");
+        guide.setAttribute("aria-label", t("guideAria"));
+        document.getElementById("guide-title").innerHTML = t("guideTitleHtml");
+        document.getElementById("guide-step-1").textContent = t("guideStep1");
+        document.getElementById("guide-step-2").innerHTML = t("guideStep2Html");
+        document.getElementById("guide-step-3").textContent = t("guideStep3");
+        document.getElementById("guide-step-4").textContent = t("guideStep4");
+        document.getElementById("guide-step-5").innerHTML = t("guideStep5Html");
+        document.querySelectorAll(".lang-btn").forEach((button) => {
+          button.classList.toggle("active", button.dataset.uiLang === currentUiLang);
+        });
+      }
+
       class CarouselEditorSection {
         constructor(root, languageLabel) {
           this.root = root;
@@ -348,7 +509,21 @@
           this.root.querySelector(".prev-btn").addEventListener("click", () => this.goToPreviousSlide());
           this.root.querySelector(".next-btn").addEventListener("click", () => this.goToNextSlide());
 
+          this.applyUiLanguage();
           this.updateOutputAndPreview();
+        }
+
+        applyUiLanguage() {
+          this.root.querySelector(".hint-input").textContent = t("hintInput");
+          this.root.querySelector(".hint-reorder").textContent = t("hintReorder");
+          this.root.querySelector(".hint-output").textContent = t("hintOutput");
+          this.root.querySelector(".load-btn").textContent = t("loadButton");
+          this.root.querySelector(".add-btn").textContent = t("addButton");
+          this.root.querySelector(".copy-btn").textContent = t("copyButton");
+          this.root.querySelector(".prev-btn").textContent = t("prevButton");
+          this.root.querySelector(".next-btn").textContent = t("nextButton");
+          this.renderItems();
+          this.renderPreview();
         }
 
         setMessage(text, isError = false) {
@@ -368,21 +543,21 @@
         loadFromInput() {
           const raw = this.rawInput.value.trim();
           if (!raw) {
-            this.setMessage("Veuillez coller un code avant de charger.", true);
+            this.setMessage(t("msgPasteCode"), true);
             return;
           }
 
           try {
             const parsed = JSON.parse(raw);
             if (!Array.isArray(parsed)) {
-              throw new Error("Le code doit être un tableau d'objets.");
+              throw new Error(t("msgCodeArray"));
             }
             this.data = parsed.map((item) => this.normalizeItem(item));
             this.renderItems();
             this.updateOutputAndPreview();
-            this.setMessage(`${this.data.length} bannière(s) chargée(s).`);
+            this.setMessage(t("msgLoaded", { count: this.data.length }));
           } catch (error) {
-            this.setMessage(`Code invalide: ${error.message}`, true);
+            this.setMessage(t("msgInvalid", { error: error.message }), true);
           }
         }
 
@@ -390,14 +565,14 @@
           this.data.push({ ...DEFAULT_ITEM });
           this.renderItems();
           this.updateOutputAndPreview();
-          this.setMessage("Nouvelle bannière ajoutée.");
+          this.setMessage(t("msgAdded"));
         }
 
         removeItem(index) {
           this.data.splice(index, 1);
           this.renderItems();
           this.updateOutputAndPreview();
-          this.setMessage("Bannière supprimée.");
+          this.setMessage(t("msgRemoved"));
         }
 
         updateField(index, key, value) {
@@ -414,21 +589,25 @@
             wrapper.draggable = true;
             wrapper.dataset.index = String(index);
             wrapper.innerHTML = `
-              <p class="item-title">Bannière #${index + 1}</p>
+              <p class="item-title">${this.escapeHtml(t("itemTitle", { index: index + 1 }))}</p>
               <div class="field">
-                <label>Image URL</label>
+                <label>${this.escapeHtml(t("imageLabel"))}</label>
                 <input type="url" data-key="imageUrl" value="${this.escapeHtml(item.imageUrl)}" />
+                <div class="image-tools">
+                  <a class="image-link" href="${this.escapeHtml(this.escapeAttributeUrl(item.imageUrl))}" target="_blank" rel="noopener noreferrer" aria-disabled="${this.escapeAttributeUrl(item.imageUrl) === "#" ? "true" : "false"}">${this.escapeHtml(t("openImage"))}</a>
+                  <span class="image-status">${this.escapeAttributeUrl(item.imageUrl) === "#" ? this.escapeHtml(t("imageInvalid")) : this.escapeHtml(t("imageCheck"))}</span>
+                </div>
               </div>
               <div class="field">
-                <label>Description</label>
+                <label>${this.escapeHtml(t("descriptionLabel"))}</label>
                 <input type="text" data-key="description" value="${this.escapeHtml(item.description)}" />
               </div>
               <div class="field">
-                <label>Lien URL</label>
+                <label>${this.escapeHtml(t("linkLabel"))}</label>
                 <input type="url" data-key="linkUrl" value="${this.escapeHtml(item.linkUrl)}" />
               </div>
               <div class="toolbar">
-                <button class="danger remove-btn" type="button">Supprimer</button>
+                <button class="danger remove-btn" type="button">${this.escapeHtml(t("removeButton"))}</button>
               </div>
             `;
 
@@ -464,6 +643,15 @@
             wrapper.querySelectorAll("input").forEach((input) => {
               input.addEventListener("input", (event) => {
                 this.updateField(index, input.dataset.key, event.target.value);
+                if (input.dataset.key === "imageUrl") {
+                  const link = wrapper.querySelector(".image-link");
+                  const status = wrapper.querySelector(".image-status");
+                  const url = event.target.value.trim();
+                  const safeUrl = this.escapeAttributeUrl(url);
+                  link.href = safeUrl;
+                  link.setAttribute("aria-disabled", safeUrl === "#" ? "true" : "false");
+                  status.textContent = safeUrl === "#" ? t("imageInvalid") : t("imageCheck");
+                }
               });
             });
 
@@ -492,7 +680,7 @@
           this.draggedIndex = null;
           this.renderItems();
           this.updateOutputAndPreview();
-          this.setMessage("Ordre des bannières mis à jour.");
+          this.setMessage(t("msgReordered"));
         }
 
         updateOutputAndPreview() {
@@ -507,7 +695,7 @@
           if (!this.data.length) {
             const empty = document.createElement("div");
             empty.className = "empty";
-            empty.textContent = "Aucun aperçu pour l'instant. Chargez ou ajoutez une bannière.";
+            empty.textContent = t("previewEmpty");
             this.carousel.append(empty);
             return;
           }
@@ -577,12 +765,23 @@
         async copyOutput() {
           try {
             await navigator.clipboard.writeText(this.rawOutput.value);
-            this.setMessage("Code copié dans le presse-papiers.");
+            this.setMessage(t("msgCopied"));
           } catch {
             this.rawOutput.select();
             document.execCommand("copy");
-            this.setMessage("Code copié (méthode de secours).");
+            this.setMessage(t("msgCopiedFallback"));
           }
+        }
+
+        escapeAttributeUrl(value) {
+          const trimmed = String(value ?? "").trim();
+          if (!trimmed) {
+            return "#";
+          }
+          if (/^https?:\/\//i.test(trimmed)) {
+            return trimmed;
+          }
+          return "#";
         }
 
         escapeHtml(value) {
@@ -596,11 +795,22 @@
 
       const layout = document.getElementById("layout");
       const template = document.getElementById("section-template");
+      const sections = [];
       ["Français", "English"].forEach((label) => {
         const clone = template.content.cloneNode(true);
         layout.append(clone);
-        new CarouselEditorSection(layout.lastElementChild, label);
+        sections.push(new CarouselEditorSection(layout.lastElementChild, label));
       });
+
+      document.querySelectorAll(".lang-btn").forEach((button) => {
+        button.addEventListener("click", () => {
+          currentUiLang = button.dataset.uiLang === "en" ? "en" : "fr";
+          applyPageLanguage();
+          sections.forEach((section) => section.applyUiLanguage());
+        });
+      });
+
+      applyPageLanguage();
     </script>
   </body>
 </html>

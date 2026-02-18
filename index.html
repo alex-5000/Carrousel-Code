@@ -150,6 +150,19 @@
         border-color: transparent;
       }
 
+      .copy-btn.copied {
+        background: #15803d;
+        color: #fff;
+        border-color: transparent;
+        animation: copiedPulse 0.45s ease-in-out 2;
+      }
+
+      @keyframes copiedPulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+      }
+
       button.danger {
         color: var(--danger);
         border-color: #f5c3be;
@@ -502,6 +515,7 @@
           this.slideIndex = 0;
           this.timer = null;
           this.draggedIndex = null;
+          this.copyFeedbackTimer = null;
 
           this.root.querySelector(".load-btn").addEventListener("click", () => this.loadFromInput());
           this.root.querySelector(".add-btn").addEventListener("click", () => this.addItem());
@@ -763,14 +777,33 @@
         }
 
         async copyOutput() {
+          const copyButton = this.root.querySelector(".copy-btn");
+
           try {
             await navigator.clipboard.writeText(this.rawOutput.value);
             this.setMessage(t("msgCopied"));
+            this.showCopyFeedback(copyButton);
           } catch {
             this.rawOutput.select();
             document.execCommand("copy");
             this.setMessage(t("msgCopiedFallback"));
+            this.showCopyFeedback(copyButton);
           }
+        }
+
+        showCopyFeedback(copyButton) {
+          if (!copyButton) {
+            return;
+          }
+
+          copyButton.classList.remove("copied");
+          void copyButton.offsetWidth;
+          copyButton.classList.add("copied");
+
+          clearTimeout(this.copyFeedbackTimer);
+          this.copyFeedbackTimer = setTimeout(() => {
+            copyButton.classList.remove("copied");
+          }, 2000);
         }
 
         escapeAttributeUrl(value) {

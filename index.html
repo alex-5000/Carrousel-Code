@@ -150,7 +150,7 @@
         border-color: transparent;
       }
 
-      .copy-btn.copied {
+      .btn-feedback {
         background: #15803d;
         color: #fff;
         border-color: transparent;
@@ -420,8 +420,11 @@
           linkLabel: "Lien URL",
           removeButton: "Supprimer",
           openImage: "Ouvrir l'image",
+          openLink: "Ouvrir le lien",
           imageInvalid: "Ajoutez une URL valide (http/https)",
           imageCheck: "Vérifier l'image",
+          linkInvalid: "Ajoutez un lien valide (http/https)",
+          linkCheck: "Vérifier le lien",
           msgPasteCode: "Veuillez coller un code avant de charger.",
           msgCodeArray: "Le code doit être un tableau d'objets.",
           msgLoaded: "{{count}} bannière(s) chargée(s).",
@@ -458,8 +461,11 @@
           linkLabel: "Link URL",
           removeButton: "Remove",
           openImage: "Open image",
+          openLink: "Open link",
           imageInvalid: "Add a valid URL (http/https)",
           imageCheck: "Check image",
+          linkInvalid: "Add a valid link (http/https)",
+          linkCheck: "Check link",
           msgPasteCode: "Please paste code before loading.",
           msgCodeArray: "Code must be an array of objects.",
           msgLoaded: "{{count}} banner(s) loaded.",
@@ -502,6 +508,30 @@
         });
       }
 
+      const buttonFeedbackTimers = new WeakMap();
+
+      function animateButtonFeedback(button) {
+        if (!button) {
+          return;
+        }
+
+        button.classList.remove("btn-feedback");
+        void button.offsetWidth;
+        button.classList.add("btn-feedback");
+
+        const existing = buttonFeedbackTimers.get(button);
+        if (existing) {
+          clearTimeout(existing);
+        }
+
+        const timeoutId = setTimeout(() => {
+          button.classList.remove("btn-feedback");
+          buttonFeedbackTimers.delete(button);
+        }, 2000);
+
+        buttonFeedbackTimers.set(button, timeoutId);
+      }
+
       class CarouselEditorSection {
         constructor(root, languageLabel) {
           this.root = root;
@@ -515,7 +545,6 @@
           this.slideIndex = 0;
           this.timer = null;
           this.draggedIndex = null;
-          this.copyFeedbackTimer = null;
 
           this.root.querySelector(".load-btn").addEventListener("click", () => this.loadFromInput());
           this.root.querySelector(".add-btn").addEventListener("click", () => this.addItem());
@@ -608,8 +637,8 @@
                 <label>${this.escapeHtml(t("imageLabel"))}</label>
                 <input type="url" data-key="imageUrl" value="${this.escapeHtml(item.imageUrl)}" />
                 <div class="image-tools">
-                  <a class="image-link" href="${this.escapeHtml(this.escapeAttributeUrl(item.imageUrl))}" target="_blank" rel="noopener noreferrer" aria-disabled="${this.escapeAttributeUrl(item.imageUrl) === "#" ? "true" : "false"}">${this.escapeHtml(t("openImage"))}</a>
-                  <span class="image-status">${this.escapeAttributeUrl(item.imageUrl) === "#" ? this.escapeHtml(t("imageInvalid")) : this.escapeHtml(t("imageCheck"))}</span>
+                  <a class="image-link image-link-image" href="${this.escapeHtml(this.escapeAttributeUrl(item.imageUrl))}" target="_blank" rel="noopener noreferrer" aria-disabled="${this.escapeAttributeUrl(item.imageUrl) === "#" ? "true" : "false"}">${this.escapeHtml(t("openImage"))}</a>
+                  <span class="image-status image-status-image">${this.escapeAttributeUrl(item.imageUrl) === "#" ? this.escapeHtml(t("imageInvalid")) : this.escapeHtml(t("imageCheck"))}</span>
                 </div>
               </div>
               <div class="field">
@@ -619,6 +648,10 @@
               <div class="field">
                 <label>${this.escapeHtml(t("linkLabel"))}</label>
                 <input type="url" data-key="linkUrl" value="${this.escapeHtml(item.linkUrl)}" />
+                <div class="image-tools">
+                  <a class="image-link image-link-url" href="${this.escapeHtml(this.escapeAttributeUrl(item.linkUrl))}" target="_blank" rel="noopener noreferrer" aria-disabled="${this.escapeAttributeUrl(item.linkUrl) === "#" ? "true" : "false"}">${this.escapeHtml(t("openLink"))}</a>
+                  <span class="image-status image-status-url">${this.escapeAttributeUrl(item.linkUrl) === "#" ? this.escapeHtml(t("linkInvalid")) : this.escapeHtml(t("linkCheck"))}</span>
+                </div>
               </div>
               <div class="toolbar">
                 <button class="danger remove-btn" type="button">${this.escapeHtml(t("removeButton"))}</button>
@@ -658,13 +691,23 @@
               input.addEventListener("input", (event) => {
                 this.updateField(index, input.dataset.key, event.target.value);
                 if (input.dataset.key === "imageUrl") {
-                  const link = wrapper.querySelector(".image-link");
-                  const status = wrapper.querySelector(".image-status");
+                  const link = wrapper.querySelector(".image-link-image");
+                  const status = wrapper.querySelector(".image-status-image");
                   const url = event.target.value.trim();
                   const safeUrl = this.escapeAttributeUrl(url);
                   link.href = safeUrl;
                   link.setAttribute("aria-disabled", safeUrl === "#" ? "true" : "false");
                   status.textContent = safeUrl === "#" ? t("imageInvalid") : t("imageCheck");
+                }
+
+                if (input.dataset.key === "linkUrl") {
+                  const link = wrapper.querySelector(".image-link-url");
+                  const status = wrapper.querySelector(".image-status-url");
+                  const url = event.target.value.trim();
+                  const safeUrl = this.escapeAttributeUrl(url);
+                  link.href = safeUrl;
+                  link.setAttribute("aria-disabled", safeUrl === "#" ? "true" : "false");
+                  status.textContent = safeUrl === "#" ? t("linkInvalid") : t("linkCheck");
                 }
               });
             });
@@ -777,33 +820,14 @@
         }
 
         async copyOutput() {
-          const copyButton = this.root.querySelector(".copy-btn");
-
           try {
             await navigator.clipboard.writeText(this.rawOutput.value);
             this.setMessage(t("msgCopied"));
-            this.showCopyFeedback(copyButton);
           } catch {
             this.rawOutput.select();
             document.execCommand("copy");
             this.setMessage(t("msgCopiedFallback"));
-            this.showCopyFeedback(copyButton);
           }
-        }
-
-        showCopyFeedback(copyButton) {
-          if (!copyButton) {
-            return;
-          }
-
-          copyButton.classList.remove("copied");
-          void copyButton.offsetWidth;
-          copyButton.classList.add("copied");
-
-          clearTimeout(this.copyFeedbackTimer);
-          this.copyFeedbackTimer = setTimeout(() => {
-            copyButton.classList.remove("copied");
-          }, 2000);
         }
 
         escapeAttributeUrl(value) {
@@ -841,6 +865,14 @@
           applyPageLanguage();
           sections.forEach((section) => section.applyUiLanguage());
         });
+      });
+
+      document.addEventListener("click", (event) => {
+        const button = event.target.closest("button");
+        if (!button) {
+          return;
+        }
+        animateButtonFeedback(button);
       });
 
       applyPageLanguage();

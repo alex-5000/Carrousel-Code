@@ -39,6 +39,28 @@
         color: var(--muted);
       }
 
+      .guide {
+        margin: 0 0 1rem;
+        padding: 0.9rem 1rem;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: #ffffff;
+      }
+
+      .guide p {
+        margin: 0 0 0.45rem;
+        font-size: 0.95rem;
+      }
+
+      .guide ol {
+        margin: 0;
+        padding-left: 1.2rem;
+      }
+
+      .guide li {
+        margin: 0.25rem 0;
+      }
+
       .layout {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -230,6 +252,12 @@
         background: #fff;
       }
 
+      .carousel-controls {
+        margin-top: 0.5rem;
+        display: flex;
+        gap: 0.5rem;
+      }
+
       .empty {
         position: absolute;
         inset: 0;
@@ -245,7 +273,17 @@
   <body>
     <main>
       <h1>Générateur de code carrousel (FR / EN)</h1>
-      <p class="intro">Travaillez une langue à la fois. Collez le JSON d’origine, modifiez les bannières, puis copiez le JSON final pour la publication.</p>
+      <p class="intro">Travaillez une langue à la fois. Collez le code d’origine, modifiez les bannières, puis copiez le code final pour la publication.</p>
+      <section class="guide" aria-label="Guide d'utilisation">
+        <p><strong>Comment procéder (sans connaissance en code) :</strong></p>
+        <ol>
+          <li>Choisissez une langue (Français ou English).</li>
+          <li>Collez le <strong>code source</strong> dans la première zone et cliquez sur <strong>Charger dans le formulaire</strong>.</li>
+          <li>Modifiez les champs (image, description, lien), ajoutez/supprimez des bannières ou glissez-déposez pour changer l'ordre.</li>
+          <li>Vérifiez le résultat dans l’aperçu en bas (défilement auto + boutons précédent/suivant).</li>
+          <li>Copiez le <strong>code final</strong> avec le bouton prévu et répétez pour l’autre langue.</li>
+        </ol>
+      </section>
 
       <div class="layout" id="layout"></div>
     </main>
@@ -254,7 +292,7 @@
       <section class="panel">
         <header class="panel-header"><h2></h2></header>
         <div class="panel-body">
-          <p class="hint">1) Coller le JSON original de la langue.</p>
+          <p class="hint">1) Coller le code original de la langue.</p>
           <textarea class="raw-input" spellcheck="false"></textarea>
           <div class="toolbar">
             <button class="primary load-btn" type="button">Charger dans le formulaire</button>
@@ -266,14 +304,18 @@
           <div class="items"></div>
 
           <div class="output-wrap">
-            <p class="hint">2) JSON final copiable</p>
+            <p class="hint">2) Code final copiable</p>
             <textarea class="raw-output" readonly spellcheck="false"></textarea>
             <div class="toolbar">
-              <button class="copy-btn" type="button">Copier le JSON</button>
+              <button class="copy-btn" type="button">Copier le code</button>
             </div>
           </div>
 
           <div class="carousel"></div>
+          <div class="carousel-controls">
+            <button class="prev-btn" type="button">◀ Précédent</button>
+            <button class="next-btn" type="button">Suivant ▶</button>
+          </div>
         </div>
       </section>
     </template>
@@ -303,6 +345,8 @@
           this.root.querySelector(".load-btn").addEventListener("click", () => this.loadFromInput());
           this.root.querySelector(".add-btn").addEventListener("click", () => this.addItem());
           this.root.querySelector(".copy-btn").addEventListener("click", () => this.copyOutput());
+          this.root.querySelector(".prev-btn").addEventListener("click", () => this.goToPreviousSlide());
+          this.root.querySelector(".next-btn").addEventListener("click", () => this.goToNextSlide());
 
           this.updateOutputAndPreview();
         }
@@ -324,21 +368,21 @@
         loadFromInput() {
           const raw = this.rawInput.value.trim();
           if (!raw) {
-            this.setMessage("Veuillez coller un JSON avant de charger.", true);
+            this.setMessage("Veuillez coller un code avant de charger.", true);
             return;
           }
 
           try {
             const parsed = JSON.parse(raw);
             if (!Array.isArray(parsed)) {
-              throw new Error("Le JSON doit être un tableau d'objets.");
+              throw new Error("Le code doit être un tableau d'objets.");
             }
             this.data = parsed.map((item) => this.normalizeItem(item));
             this.renderItems();
             this.updateOutputAndPreview();
             this.setMessage(`${this.data.length} bannière(s) chargée(s).`);
           } catch (error) {
-            this.setMessage(`JSON invalide: ${error.message}`, true);
+            this.setMessage(`Code invalide: ${error.message}`, true);
           }
         }
 
@@ -495,20 +539,49 @@
             dots.querySelectorAll(".dot").forEach((dot, i) => dot.classList.toggle("active", i === this.slideIndex));
           };
 
+          this.previewUpdate = update;
+          this.restartTimer();
+        }
+
+        restartTimer() {
+          clearInterval(this.timer);
+          if (!this.data.length) {
+            return;
+          }
           this.timer = setInterval(() => {
             this.slideIndex = (this.slideIndex + 1) % this.data.length;
-            update();
+            if (this.previewUpdate) {
+              this.previewUpdate();
+            }
           }, 3500);
+        }
+
+        goToPreviousSlide() {
+          if (!this.data.length || !this.previewUpdate) {
+            return;
+          }
+          this.slideIndex = (this.slideIndex - 1 + this.data.length) % this.data.length;
+          this.previewUpdate();
+          this.restartTimer();
+        }
+
+        goToNextSlide() {
+          if (!this.data.length || !this.previewUpdate) {
+            return;
+          }
+          this.slideIndex = (this.slideIndex + 1) % this.data.length;
+          this.previewUpdate();
+          this.restartTimer();
         }
 
         async copyOutput() {
           try {
             await navigator.clipboard.writeText(this.rawOutput.value);
-            this.setMessage("JSON copié dans le presse-papiers.");
+            this.setMessage("Code copié dans le presse-papiers.");
           } catch {
             this.rawOutput.select();
             document.execCommand("copy");
-            this.setMessage("JSON copié (méthode de secours).");
+            this.setMessage("Code copié (méthode de secours).");
           }
         }
 

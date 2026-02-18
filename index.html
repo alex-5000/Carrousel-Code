@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Générateur de carrousel FR / EN</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        --bg: #f7f8fb;
+        --card: #ffffff;
+        --border: #d9dde7;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --primary: #1155cc;
+        --danger: #b42318;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      main {
+        width: min(1200px, 96vw);
+        margin: 1.5rem auto 2rem;
+      }
+
+      h1 {
+        margin: 0 0 0.5rem;
+      }
+
+      .intro {
+        margin: 0 0 1rem;
+        color: var(--muted);
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 1rem;
+      }
+
+      .panel {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: var(--card);
+        overflow: hidden;
+      }
+
+      .panel-header {
+        padding: 0.9rem 1rem;
+        border-bottom: 1px solid var(--border);
+        background: #f1f5ff;
+      }
+
+      .panel-header h2 {
+        margin: 0;
+        font-size: 1.1rem;
+      }
+
+      .panel-body {
+        padding: 1rem;
+      }
+
+      .hint {
+        margin: 0 0 0.5rem;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      textarea,
+      input {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 0.55rem 0.65rem;
+        font: inherit;
+      }
+
+      textarea {
+        min-height: 130px;
+        resize: vertical;
+      }
+
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.55rem;
+        margin-top: 0.7rem;
+      }
+
+      button {
+        border: 1px solid var(--border);
+        background: #fff;
+        border-radius: 8px;
+        padding: 0.5rem 0.75rem;
+        font: inherit;
+        cursor: pointer;
+      }
+
+      button.primary {
+        background: var(--primary);
+        color: #fff;
+        border-color: transparent;
+      }
+
+      button.danger {
+        color: var(--danger);
+        border-color: #f5c3be;
+        background: #fff5f4;
+      }
+
+      .items {
+        margin-top: 0.9rem;
+        display: grid;
+        gap: 0.75rem;
+      }
+
+      .item {
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 0.7rem;
+        background: #fcfdff;
+        cursor: grab;
+      }
+
+      .item.dragging {
+        opacity: 0.65;
+        border-style: dashed;
+      }
+
+      .item.drag-over {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px rgba(17, 85, 204, 0.12);
+      }
+
+      .item-title {
+        font-size: 0.92rem;
+        margin: 0 0 0.5rem;
+        color: #374151;
+      }
+
+      .field {
+        margin: 0 0 0.45rem;
+      }
+
+      .field label {
+        display: block;
+        font-size: 0.83rem;
+        margin: 0 0 0.2rem;
+        color: #4b5563;
+      }
+
+      .output-wrap {
+        margin-top: 1rem;
+      }
+
+      .message {
+        margin-top: 0.55rem;
+        min-height: 1.2em;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+
+      .carousel {
+        margin-top: 1rem;
+        position: relative;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+        background: #e4e7ed;
+        aspect-ratio: 16 / 7;
+        width: 100%;
+        max-height: 210px;
+      }
+
+      .slide {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        transition: opacity 0.6s ease;
+      }
+
+      .slide.active {
+        opacity: 1;
+      }
+
+      .slide img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+        background: #dbe0ea;
+      }
+
+      .caption {
+        position: absolute;
+        left: 0.7rem;
+        bottom: 0.6rem;
+        background: rgba(0, 0, 0, 0.62);
+        color: #fff;
+        padding: 0.28rem 0.45rem;
+        border-radius: 4px;
+        font-size: 0.74rem;
+        max-width: calc(100% - 1.4rem);
+        line-height: 1.3;
+      }
+
+      .dots {
+        position: absolute;
+        bottom: 0.35rem;
+        right: 0.45rem;
+        display: flex;
+        gap: 0.35rem;
+      }
+
+      .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.45);
+      }
+
+      .dot.active {
+        background: #fff;
+      }
+
+      .empty {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        color: #334155;
+        font-size: 0.9rem;
+        text-align: center;
+        padding: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Générateur de code carrousel (FR / EN)</h1>
+      <p class="intro">Travaillez une langue à la fois. Collez le JSON d’origine, modifiez les bannières, puis copiez le JSON final pour la publication.</p>
+
+      <div class="layout" id="layout"></div>
+    </main>
+
+    <template id="section-template">
+      <section class="panel">
+        <header class="panel-header"><h2></h2></header>
+        <div class="panel-body">
+          <p class="hint">1) Coller le JSON original de la langue.</p>
+          <textarea class="raw-input" spellcheck="false"></textarea>
+          <div class="toolbar">
+            <button class="primary load-btn" type="button">Charger dans le formulaire</button>
+            <button class="add-btn" type="button">+ Ajouter une bannière</button>
+          </div>
+          <p class="message"></p>
+
+          <p class="hint">Glissez-déposez les bannières pour changer leur ordre.</p>
+          <div class="items"></div>
+
+          <div class="output-wrap">
+            <p class="hint">2) JSON final copiable</p>
+            <textarea class="raw-output" readonly spellcheck="false"></textarea>
+            <div class="toolbar">
+              <button class="copy-btn" type="button">Copier le JSON</button>
+            </div>
+          </div>
+
+          <div class="carousel"></div>
+        </div>
+      </section>
+    </template>
+
+    <script>
+      const DEFAULT_ITEM = {
+        imageUrl: "",
+        description: "",
+        linkUrl: "",
+        openInNewTab: false,
+      };
+
+      class CarouselEditorSection {
+        constructor(root, languageLabel) {
+          this.root = root;
+          this.root.querySelector("h2").textContent = languageLabel;
+          this.rawInput = this.root.querySelector(".raw-input");
+          this.rawOutput = this.root.querySelector(".raw-output");
+          this.itemsContainer = this.root.querySelector(".items");
+          this.message = this.root.querySelector(".message");
+          this.carousel = this.root.querySelector(".carousel");
+          this.data = [];
+          this.slideIndex = 0;
+          this.timer = null;
+          this.draggedIndex = null;
+
+          this.root.querySelector(".load-btn").addEventListener("click", () => this.loadFromInput());
+          this.root.querySelector(".add-btn").addEventListener("click", () => this.addItem());
+          this.root.querySelector(".copy-btn").addEventListener("click", () => this.copyOutput());
+
+          this.updateOutputAndPreview();
+        }
+
+        setMessage(text, isError = false) {
+          this.message.textContent = text;
+          this.message.style.color = isError ? "#b42318" : "#6b7280";
+        }
+
+        normalizeItem(item = {}) {
+          return {
+            imageUrl: String(item.imageUrl ?? ""),
+            description: String(item.description ?? ""),
+            linkUrl: String(item.linkUrl ?? ""),
+            openInNewTab: false,
+          };
+        }
+
+        loadFromInput() {
+          const raw = this.rawInput.value.trim();
+          if (!raw) {
+            this.setMessage("Veuillez coller un JSON avant de charger.", true);
+            return;
+          }
+
+          try {
+            const parsed = JSON.parse(raw);
+            if (!Array.isArray(parsed)) {
+              throw new Error("Le JSON doit être un tableau d'objets.");
+            }
+            this.data = parsed.map((item) => this.normalizeItem(item));
+            this.renderItems();
+            this.updateOutputAndPreview();
+            this.setMessage(`${this.data.length} bannière(s) chargée(s).`);
+          } catch (error) {
+            this.setMessage(`JSON invalide: ${error.message}`, true);
+          }
+        }
+
+        addItem() {
+          this.data.push({ ...DEFAULT_ITEM });
+          this.renderItems();
+          this.updateOutputAndPreview();
+          this.setMessage("Nouvelle bannière ajoutée.");
+        }
+
+        removeItem(index) {
+          this.data.splice(index, 1);
+          this.renderItems();
+          this.updateOutputAndPreview();
+          this.setMessage("Bannière supprimée.");
+        }
+
+        updateField(index, key, value) {
+          this.data[index][key] = value;
+          this.updateOutputAndPreview();
+        }
+
+        renderItems() {
+          this.itemsContainer.textContent = "";
+
+          this.data.forEach((item, index) => {
+            const wrapper = document.createElement("article");
+            wrapper.className = "item";
+            wrapper.draggable = true;
+            wrapper.dataset.index = String(index);
+            wrapper.innerHTML = `
+              <p class="item-title">Bannière #${index + 1}</p>
+              <div class="field">
+                <label>Image URL</label>
+                <input type="url" data-key="imageUrl" value="${this.escapeHtml(item.imageUrl)}" />
+              </div>
+              <div class="field">
+                <label>Description</label>
+                <input type="text" data-key="description" value="${this.escapeHtml(item.description)}" />
+              </div>
+              <div class="field">
+                <label>Lien URL</label>
+                <input type="url" data-key="linkUrl" value="${this.escapeHtml(item.linkUrl)}" />
+              </div>
+              <div class="toolbar">
+                <button class="danger remove-btn" type="button">Supprimer</button>
+              </div>
+            `;
+
+            wrapper.addEventListener("dragstart", (event) => {
+              this.draggedIndex = index;
+              wrapper.classList.add("dragging");
+              event.dataTransfer.effectAllowed = "move";
+            });
+
+            wrapper.addEventListener("dragend", () => {
+              wrapper.classList.remove("dragging");
+              this.itemsContainer.querySelectorAll(".item").forEach((node) => node.classList.remove("drag-over"));
+            });
+
+            wrapper.addEventListener("dragover", (event) => {
+              event.preventDefault();
+              if (this.draggedIndex === index) {
+                return;
+              }
+              wrapper.classList.add("drag-over");
+            });
+
+            wrapper.addEventListener("dragleave", () => {
+              wrapper.classList.remove("drag-over");
+            });
+
+            wrapper.addEventListener("drop", (event) => {
+              event.preventDefault();
+              wrapper.classList.remove("drag-over");
+              this.reorderItems(this.draggedIndex, index);
+            });
+
+            wrapper.querySelectorAll("input").forEach((input) => {
+              input.addEventListener("input", (event) => {
+                this.updateField(index, input.dataset.key, event.target.value);
+              });
+            });
+
+            wrapper.querySelector(".remove-btn").addEventListener("click", () => this.removeItem(index));
+            this.itemsContainer.append(wrapper);
+          });
+        }
+
+        reorderItems(fromIndex, toIndex) {
+          if (
+            fromIndex === null ||
+            toIndex === null ||
+            fromIndex === undefined ||
+            toIndex === undefined ||
+            fromIndex === toIndex ||
+            fromIndex < 0 ||
+            toIndex < 0 ||
+            fromIndex >= this.data.length ||
+            toIndex >= this.data.length
+          ) {
+            return;
+          }
+
+          const [movedItem] = this.data.splice(fromIndex, 1);
+          this.data.splice(toIndex, 0, movedItem);
+          this.draggedIndex = null;
+          this.renderItems();
+          this.updateOutputAndPreview();
+          this.setMessage("Ordre des bannières mis à jour.");
+        }
+
+        updateOutputAndPreview() {
+          this.rawOutput.value = JSON.stringify(this.data.map((item) => this.normalizeItem(item)), null, 2);
+          this.renderPreview();
+        }
+
+        renderPreview() {
+          this.carousel.textContent = "";
+          clearInterval(this.timer);
+
+          if (!this.data.length) {
+            const empty = document.createElement("div");
+            empty.className = "empty";
+            empty.textContent = "Aucun aperçu pour l'instant. Chargez ou ajoutez une bannière.";
+            this.carousel.append(empty);
+            return;
+          }
+
+          this.slideIndex = Math.min(this.slideIndex, this.data.length - 1);
+
+          const slides = this.data.map((item, index) => {
+            const slide = document.createElement("div");
+            slide.className = `slide ${index === this.slideIndex ? "active" : ""}`;
+            slide.innerHTML = `
+              <img src="${this.escapeHtml(item.imageUrl)}" alt="${this.escapeHtml(item.description)}" loading="lazy" />
+              <div class="caption">${this.escapeHtml(item.description)}</div>
+            `;
+            this.carousel.append(slide);
+            return slide;
+          });
+
+          const dots = document.createElement("div");
+          dots.className = "dots";
+          this.data.forEach((_, i) => {
+            const dot = document.createElement("span");
+            dot.className = `dot ${i === this.slideIndex ? "active" : ""}`;
+            dots.append(dot);
+          });
+          this.carousel.append(dots);
+
+          const update = () => {
+            slides.forEach((slide, i) => slide.classList.toggle("active", i === this.slideIndex));
+            dots.querySelectorAll(".dot").forEach((dot, i) => dot.classList.toggle("active", i === this.slideIndex));
+          };
+
+          this.timer = setInterval(() => {
+            this.slideIndex = (this.slideIndex + 1) % this.data.length;
+            update();
+          }, 3500);
+        }
+
+        async copyOutput() {
+          try {
+            await navigator.clipboard.writeText(this.rawOutput.value);
+            this.setMessage("JSON copié dans le presse-papiers.");
+          } catch {
+            this.rawOutput.select();
+            document.execCommand("copy");
+            this.setMessage("JSON copié (méthode de secours).");
+          }
+        }
+
+        escapeHtml(value) {
+          return value
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;");
+        }
+      }
+
+      const layout = document.getElementById("layout");
+      const template = document.getElementById("section-template");
+      ["Français", "English"].forEach((label) => {
+        const clone = template.content.cloneNode(true);
+        layout.append(clone);
+        new CarouselEditorSection(layout.lastElementChild, label);
+      });
+    </script>
+  </body>
+</html>

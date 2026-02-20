@@ -153,12 +153,29 @@
         font: inherit;
         font-size: 0.86rem;
         cursor: pointer;
+        transition: background 0.15s, color 0.15s, border-color 0.15s;
+      }
+
+      button:hover {
+        background: #eef0f6;
+      }
+
+      button:focus-visible,
+      input:focus-visible,
+      textarea:focus-visible,
+      a:focus-visible {
+        outline: 2px solid var(--primary);
+        outline-offset: 2px;
       }
 
       button.primary {
         background: var(--primary);
         color: #fff;
         border-color: transparent;
+      }
+
+      button.primary:hover {
+        background: #0e47b3;
       }
 
       .btn-feedback {
@@ -178,6 +195,26 @@
         color: var(--danger);
         border-color: #f5c3be;
         background: #fff5f4;
+      }
+
+      button.danger:hover {
+        background: #fde8e6;
+      }
+
+      .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #4b5563;
+        cursor: pointer;
+      }
+
+      .checkbox-label input[type="checkbox"] {
+        width: auto;
+        margin: 0;
+        cursor: pointer;
       }
 
       .items {
@@ -386,7 +423,7 @@
             <button class="primary load-btn" type="button">Charger dans le formulaire</button>
             <button class="add-btn" type="button">+ Ajouter une bannière</button>
           </div>
-          <p class="message"></p>
+          <p class="message" aria-live="polite"></p>
 
           <p class="hint hint-reorder">Glissez-déposez les bannières pour changer leur ordre. Vous pouvez aussi ouvrir chaque image dans un nouvel onglet.</p>
           <div class="items"></div>
@@ -458,6 +495,7 @@
           msgCopied: "Code copié dans le presse-papiers.",
           msgCopiedFallback: "Code copié (méthode de secours).",
           previewEmpty: "Aucun aperçu pour l'instant. Chargez ou ajoutez une bannière.",
+          openInNewTabLabel: "Ouvrir dans un nouvel onglet",
           msgColumnReset: "Colonne réinitialisée.",
         },
         en: {
@@ -501,6 +539,7 @@
           msgCopied: "Code copied to clipboard.",
           msgCopiedFallback: "Code copied (fallback method).",
           previewEmpty: "No preview yet. Load or add a banner.",
+          openInNewTabLabel: "Open in new tab",
           msgColumnReset: "Column reset.",
         },
       };
@@ -607,7 +646,7 @@
             imageUrl: String(item.imageUrl ?? ""),
             description: String(item.description ?? ""),
             linkUrl: String(item.linkUrl ?? ""),
-            openInNewTab: false,
+            openInNewTab: Boolean(item.openInNewTab ?? false),
           };
         }
 
@@ -668,14 +707,16 @@
             wrapper.className = "item";
             wrapper.draggable = true;
             wrapper.dataset.index = String(index);
+            const imageUrlSafe = this.escapeAttributeUrl(item.imageUrl);
+            const linkUrlSafe = this.escapeAttributeUrl(item.linkUrl);
             wrapper.innerHTML = `
               <p class="item-title">${this.escapeHtml(t("itemTitle", { index: index + 1 }))}</p>
               <div class="field">
                 <label>${this.escapeHtml(t("imageLabel"))}</label>
                 <input type="url" data-key="imageUrl" value="${this.escapeHtml(item.imageUrl)}" />
                 <div class="image-tools">
-                  <a class="image-link image-link-image" href="${this.escapeHtml(this.escapeAttributeUrl(item.imageUrl))}" target="_blank" rel="noopener noreferrer" aria-disabled="${this.escapeAttributeUrl(item.imageUrl) === "#" ? "true" : "false"}">${this.escapeHtml(t("openImage"))}</a>
-                  <span class="image-status image-status-image">${this.escapeAttributeUrl(item.imageUrl) === "#" ? this.escapeHtml(t("imageInvalid")) : this.escapeHtml(t("imageCheck"))}</span>
+                  <a class="image-link image-link-image" href="${this.escapeHtml(imageUrlSafe)}" target="_blank" rel="noopener noreferrer" aria-disabled="${imageUrlSafe === "#" ? "true" : "false"}"${imageUrlSafe === "#" ? ' tabindex="-1"' : ""}>${this.escapeHtml(t("openImage"))}</a>
+                  <span class="image-status image-status-image">${imageUrlSafe === "#" ? this.escapeHtml(t("imageInvalid")) : this.escapeHtml(t("imageCheck"))}</span>
                 </div>
               </div>
               <div class="field">
@@ -686,9 +727,15 @@
                 <label>${this.escapeHtml(t("linkLabel"))}</label>
                 <input type="url" data-key="linkUrl" value="${this.escapeHtml(item.linkUrl)}" />
                 <div class="image-tools">
-                  <a class="image-link image-link-url" href="${this.escapeHtml(this.escapeAttributeUrl(item.linkUrl))}" target="_blank" rel="noopener noreferrer" aria-disabled="${this.escapeAttributeUrl(item.linkUrl) === "#" ? "true" : "false"}">${this.escapeHtml(t("openLink"))}</a>
-                  <span class="image-status image-status-url">${this.escapeAttributeUrl(item.linkUrl) === "#" ? this.escapeHtml(t("linkInvalid")) : this.escapeHtml(t("linkCheck"))}</span>
+                  <a class="image-link image-link-url" href="${this.escapeHtml(linkUrlSafe)}" target="_blank" rel="noopener noreferrer" aria-disabled="${linkUrlSafe === "#" ? "true" : "false"}"${linkUrlSafe === "#" ? ' tabindex="-1"' : ""}>${this.escapeHtml(t("openLink"))}</a>
+                  <span class="image-status image-status-url">${linkUrlSafe === "#" ? this.escapeHtml(t("linkInvalid")) : this.escapeHtml(t("linkCheck"))}</span>
                 </div>
+              </div>
+              <div class="field">
+                <label class="checkbox-label">
+                  <input type="checkbox" data-key="openInNewTab"${item.openInNewTab ? " checked" : ""} />
+                  ${this.escapeHtml(t("openInNewTabLabel"))}
+                </label>
               </div>
               <div class="toolbar">
                 <button class="danger remove-btn" type="button">${this.escapeHtml(t("removeButton"))}</button>
@@ -725,25 +772,28 @@
             });
 
             wrapper.querySelectorAll("input").forEach((input) => {
-              input.addEventListener("input", (event) => {
-                this.updateField(index, input.dataset.key, event.target.value);
+              const eventType = input.type === "checkbox" ? "change" : "input";
+              input.addEventListener(eventType, (event) => {
+                const value = input.type === "checkbox" ? event.target.checked : event.target.value;
+                this.updateField(index, input.dataset.key, value);
+
                 if (input.dataset.key === "imageUrl") {
                   const link = wrapper.querySelector(".image-link-image");
                   const status = wrapper.querySelector(".image-status-image");
-                  const url = event.target.value.trim();
-                  const safeUrl = this.escapeAttributeUrl(url);
+                  const safeUrl = this.escapeAttributeUrl(event.target.value.trim());
                   link.href = safeUrl;
                   link.setAttribute("aria-disabled", safeUrl === "#" ? "true" : "false");
+                  if (safeUrl === "#") { link.setAttribute("tabindex", "-1"); } else { link.removeAttribute("tabindex"); }
                   status.textContent = safeUrl === "#" ? t("imageInvalid") : t("imageCheck");
                 }
 
                 if (input.dataset.key === "linkUrl") {
                   const link = wrapper.querySelector(".image-link-url");
                   const status = wrapper.querySelector(".image-status-url");
-                  const url = event.target.value.trim();
-                  const safeUrl = this.escapeAttributeUrl(url);
+                  const safeUrl = this.escapeAttributeUrl(event.target.value.trim());
                   link.href = safeUrl;
                   link.setAttribute("aria-disabled", safeUrl === "#" ? "true" : "false");
+                  if (safeUrl === "#") { link.setAttribute("tabindex", "-1"); } else { link.removeAttribute("tabindex"); }
                   status.textContent = safeUrl === "#" ? t("linkInvalid") : t("linkCheck");
                 }
               });
@@ -857,13 +907,16 @@
         }
 
         async copyOutput() {
+          const btn = this.root.querySelector(".copy-btn");
           try {
             await navigator.clipboard.writeText(this.rawOutput.value);
             this.setMessage(t("msgCopied"));
+            animateButtonFeedback(btn);
           } catch {
             this.rawOutput.select();
             document.execCommand("copy");
             this.setMessage(t("msgCopiedFallback"));
+            animateButtonFeedback(btn);
           }
         }
 
@@ -904,13 +957,7 @@
         });
       });
 
-      document.addEventListener("click", (event) => {
-        const button = event.target.closest("button");
-        if (!button) {
-          return;
-        }
-        animateButtonFeedback(button);
-      });
+      // animateButtonFeedback is called explicitly only on successful copy actions.
 
       applyPageLanguage();
     </script>

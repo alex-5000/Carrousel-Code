@@ -298,6 +298,7 @@
         padding: 0.18rem 0.4rem;
         display: inline-block;
         white-space: nowrap;
+        cursor: help;
       }
 
       .drag-handle {
@@ -472,6 +473,43 @@
         font-size: 0.9rem;
         text-align: center;
         padding: 1rem;
+      }
+
+      /* Banner image preview tooltip */
+      .banner-preview-tooltip {
+        position: fixed;
+        z-index: 9999;
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15), 0 1px 4px rgba(0, 0, 0, 0.08);
+        padding: 6px;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.18s ease;
+        width: 200px;
+      }
+
+      .banner-preview-tooltip.visible {
+        opacity: 1;
+      }
+
+      .banner-preview-tooltip .preview-img {
+        width: 100%;
+        aspect-ratio: 16 / 7;
+        object-fit: cover;
+        border-radius: 6px;
+        display: block;
+        background: #dbe0ea;
+      }
+
+      .banner-preview-tooltip .preview-caption {
+        font-size: 0.74rem;
+        color: var(--muted);
+        margin-top: 5px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
     </style>
   </head>
@@ -687,8 +725,58 @@
         buttonFeedbackTimers.set(button, timeoutId);
       }
 
+      // --- Banner preview tooltip ---
+      const previewTooltip = document.createElement("div");
+      previewTooltip.className = "banner-preview-tooltip";
+      previewTooltip.innerHTML = '<img class="preview-img" src="" alt="" /><div class="preview-caption"></div>';
+      document.body.appendChild(previewTooltip);
+
+      function showPreviewTooltip(anchor, imageUrl, description, side) {
+        const trimmed = String(imageUrl ?? "").trim();
+        if (!/^https?:\/\//i.test(trimmed)) {
+          previewTooltip.classList.remove("visible");
+          return;
+        }
+        const img = previewTooltip.querySelector(".preview-img");
+        const captionEl = previewTooltip.querySelector(".preview-caption");
+        img.src = trimmed;
+        img.alt = description || "";
+        captionEl.textContent = description || "";
+        captionEl.style.display = description ? "" : "none";
+
+        const rect = anchor.getBoundingClientRect();
+        const tooltipWidth = 200;
+        const gap = 10;
+        const tooltipHeight = 120;
+
+        let left;
+        if (side === "left") {
+          left = rect.left - tooltipWidth - gap;
+          if (left < 8) left = rect.right + gap;
+        } else {
+          left = rect.right + gap;
+          if (left + tooltipWidth > window.innerWidth - 8) {
+            left = rect.left - tooltipWidth - gap;
+          }
+        }
+
+        const top = Math.max(8, Math.min(
+          rect.top + rect.height / 2 - tooltipHeight / 2,
+          window.innerHeight - tooltipHeight - 8
+        ));
+
+        previewTooltip.style.left = `${left}px`;
+        previewTooltip.style.top = `${top}px`;
+        previewTooltip.classList.add("visible");
+      }
+
+      function hidePreviewTooltip() {
+        previewTooltip.classList.remove("visible");
+      }
+      // --- End banner preview tooltip ---
+
       class CarouselEditorSection {
-        constructor(root, languageLabel) {
+        constructor(root, languageLabel, side) {
           this.root = root;
           this.root.querySelector("h2").textContent = languageLabel;
           this.rawInput = this.root.querySelector(".raw-input");
@@ -700,6 +788,7 @@
           this.slideIndex = 0;
           this.timer = null;
           this.draggedIndex = null;
+          this.side = side ?? "right";
 
           this.root.querySelector(".load-btn").addEventListener("click", () => this.loadFromInput());
           this.root.querySelector(".add-btn").addEventListener("click", () => this.addItem());
@@ -790,6 +879,7 @@
         }
 
         renderItems() {
+          hidePreviewTooltip();
           this.itemsContainer.textContent = "";
 
           this.data.forEach((item, index) => {
@@ -854,6 +944,16 @@
             }
 
             const handle = wrapper.querySelector(".drag-handle");
+            const itemTitleEl = wrapper.querySelector(".item-title");
+            const imageUrlInputEl = wrapper.querySelector('input[data-key="imageUrl"]');
+            let imgInputHovered = false;
+            let imgInputFocused = false;
+            const showImgTooltip = () => showPreviewTooltip(
+              imageUrlInputEl,
+              this.data[index].imageUrl,
+              this.data[index].description,
+              this.side
+            );
 
             handle.addEventListener("dragstart", (event) => {
               this.draggedIndex = index;
@@ -907,6 +1007,10 @@
                     bg.style.backgroundImage = "";
                     bg.classList.remove("has-image");
                   }
+
+                  if (imgInputFocused || imgInputHovered) {
+                    showImgTooltip();
+                  }
                 }
 
                 if (input.dataset.key === "linkUrl") {
@@ -919,6 +1023,30 @@
                   status.textContent = safeUrl === "#" ? t("linkInvalid") : t("linkCheck");
                 }
               });
+            });
+
+            // Tooltip: item title hover
+            itemTitleEl.addEventListener("mouseenter", () => {
+              showPreviewTooltip(itemTitleEl, this.data[index].imageUrl, this.data[index].description, this.side);
+            });
+            itemTitleEl.addEventListener("mouseleave", hidePreviewTooltip);
+
+            // Tooltip: image URL input hover + focus
+            imageUrlInputEl.addEventListener("mouseenter", () => {
+              imgInputHovered = true;
+              showImgTooltip();
+            });
+            imageUrlInputEl.addEventListener("mouseleave", () => {
+              imgInputHovered = false;
+              if (!imgInputFocused) hidePreviewTooltip();
+            });
+            imageUrlInputEl.addEventListener("focus", () => {
+              imgInputFocused = true;
+              showImgTooltip();
+            });
+            imageUrlInputEl.addEventListener("blur", () => {
+              imgInputFocused = false;
+              if (!imgInputHovered) hidePreviewTooltip();
             });
 
             wrapper.querySelector(".remove-btn").addEventListener("click", () => this.removeItem(index));
@@ -1065,10 +1193,10 @@
       const layout = document.getElementById("layout");
       const template = document.getElementById("section-template");
       const sections = [];
-      ["Français", "English"].forEach((label) => {
+      ["Français", "English"].forEach((label, index) => {
         const clone = template.content.cloneNode(true);
         layout.append(clone);
-        sections.push(new CarouselEditorSection(layout.lastElementChild, label));
+        sections.push(new CarouselEditorSection(layout.lastElementChild, label, index === 0 ? "left" : "right"));
       });
 
       document.querySelectorAll(".lang-btn").forEach((button) => {

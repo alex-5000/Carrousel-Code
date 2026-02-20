@@ -228,6 +228,30 @@
         border-radius: 10px;
         padding: 0.35rem 0.45rem;
         background: #fcfdff;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .item-bg {
+        position: absolute;
+        inset: -24px;
+        z-index: 0;
+        background-size: cover;
+        background-position: center;
+        filter: blur(22px);
+        opacity: 0;
+        transition: opacity 0.4s ease;
+        pointer-events: none;
+        border-radius: inherit;
+      }
+
+      .item-bg.has-image {
+        opacity: 0.28;
+      }
+
+      .item > *:not(.item-bg) {
+        position: relative;
+        z-index: 1;
       }
 
       .item.dragging {
@@ -775,6 +799,7 @@
             const imageUrlSafe = this.escapeAttributeUrl(item.imageUrl);
             const linkUrlSafe = this.escapeAttributeUrl(item.linkUrl);
             wrapper.innerHTML = `
+              <div class="item-bg"></div>
               <div class="item-header">
                 <div class="item-header-left">
                   <p class="item-title">${this.escapeHtml(t("itemTitle", { index: index + 1 }))}</p>
@@ -822,6 +847,12 @@
               </div>
             `;
 
+            const bgDiv = wrapper.querySelector(".item-bg");
+            if (imageUrlSafe !== "#") {
+              bgDiv.style.backgroundImage = `url(${imageUrlSafe})`;
+              bgDiv.classList.add("has-image");
+            }
+
             const handle = wrapper.querySelector(".drag-handle");
 
             handle.addEventListener("dragstart", (event) => {
@@ -867,6 +898,15 @@
                   link.setAttribute("aria-disabled", safeUrl === "#" ? "true" : "false");
                   if (safeUrl === "#") { link.setAttribute("tabindex", "-1"); } else { link.removeAttribute("tabindex"); }
                   status.textContent = safeUrl === "#" ? t("imageInvalid") : t("imageCheck");
+
+                  const bg = wrapper.querySelector(".item-bg");
+                  if (safeUrl !== "#") {
+                    bg.style.backgroundImage = `url(${safeUrl})`;
+                    bg.classList.add("has-image");
+                  } else {
+                    bg.style.backgroundImage = "";
+                    bg.classList.remove("has-image");
+                  }
                 }
 
                 if (input.dataset.key === "linkUrl") {

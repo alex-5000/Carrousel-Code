@@ -228,7 +228,6 @@
         border-radius: 10px;
         padding: 0.48rem;
         background: #fcfdff;
-        cursor: grab;
       }
 
       .item.dragging {
@@ -241,17 +240,62 @@
         box-shadow: 0 0 0 2px rgba(17, 85, 204, 0.12);
       }
 
+      .item-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.3rem;
+        gap: 0.3rem;
+      }
+
+      .item-header-left {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        min-width: 0;
+      }
+
+      .item-header-right {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        flex-shrink: 0;
+      }
+
       .item-title {
         font-size: 0.83rem;
         font-weight: 800;
         letter-spacing: 0.01em;
-        margin: 0 0 0.35rem;
+        margin: 0;
         color: #0f2d6b;
         background: #e8f0ff;
         border: 1px solid #c8dcff;
         border-radius: 6px;
         padding: 0.18rem 0.4rem;
         display: inline-block;
+        white-space: nowrap;
+      }
+
+      .drag-handle {
+        cursor: grab;
+        color: #9ca3af;
+        display: flex;
+        align-items: center;
+        padding: 0.15rem 0.2rem;
+        border-radius: 5px;
+        transition: color 0.15s, background 0.15s;
+        line-height: 1;
+        user-select: none;
+        flex-shrink: 0;
+      }
+
+      .drag-handle:hover {
+        color: var(--primary);
+        background: #e8f0ff;
+      }
+
+      .drag-handle:active {
+        cursor: grabbing;
       }
 
       .field {
@@ -466,7 +510,8 @@
           guideStep4: "Vérifiez le résultat dans l’aperçu en bas (défilement auto + boutons précédent/suivant).",
           guideStep5Html: "Copiez le <strong>code final</strong> avec le bouton prévu et répétez pour l’autre langue.",
           hintInput: "1) Coller le code original de la langue.",
-          hintReorder: "Glissez-déposez les bannières pour changer leur ordre. Vous pouvez aussi ouvrir chaque image dans un nouvel onglet.",
+          hintReorder: "Utilisez l'icône ⠿ en haut à droite de chaque bannière pour glisser-déposer. Vous pouvez aussi ouvrir chaque image dans un nouvel onglet.",
+          dragHandle: "Déplacer",
           hintOutput: "2) Code final copiable",
           loadButton: "Charger dans le formulaire",
           addButton: "+ Ajouter une bannière",
@@ -510,7 +555,8 @@
           guideStep4: "Check the result in the preview below (auto-play + previous/next buttons).",
           guideStep5Html: "Copy the <strong>final code</strong> with the button, then repeat for the other language section.",
           hintInput: "1) Paste the original code for this section.",
-          hintReorder: "Drag and drop banners to change order. You can also open each image in a new tab.",
+          hintReorder: "Use the ⠿ icon at the top-right of each banner to drag and drop. You can also open each image in a new tab.",
+          dragHandle: "Move",
           hintOutput: "2) Copy-ready final code",
           loadButton: "Load into the form",
           addButton: "+ Add banner",
@@ -705,12 +751,29 @@
           this.data.forEach((item, index) => {
             const wrapper = document.createElement("article");
             wrapper.className = "item";
-            wrapper.draggable = true;
             wrapper.dataset.index = String(index);
             const imageUrlSafe = this.escapeAttributeUrl(item.imageUrl);
             const linkUrlSafe = this.escapeAttributeUrl(item.linkUrl);
             wrapper.innerHTML = `
-              <p class="item-title">${this.escapeHtml(t("itemTitle", { index: index + 1 }))}</p>
+              <div class="item-header">
+                <div class="item-header-left">
+                  <p class="item-title">${this.escapeHtml(t("itemTitle", { index: index + 1 }))}</p>
+                </div>
+                <div class="item-header-right">
+                  <button class="danger remove-btn" type="button">${this.escapeHtml(t("removeButton"))}</button>
+                  <span class="drag-handle" draggable="true" title="${this.escapeHtml(t("dragHandle"))}">
+                    <svg width="12" height="16" viewBox="0 0 12 16" fill="currentColor" aria-hidden="true">
+                      <circle cx="4" cy="3" r="1.5"/><circle cx="8" cy="3" r="1.5"/>
+                      <circle cx="4" cy="8" r="1.5"/><circle cx="8" cy="8" r="1.5"/>
+                      <circle cx="4" cy="13" r="1.5"/><circle cx="8" cy="13" r="1.5"/>
+                    </svg>
+                  </span>
+                </div>
+              </div>
+              <div class="field">
+                <label>${this.escapeHtml(t("descriptionLabel"))}</label>
+                <input type="text" data-key="description" value="${this.escapeHtml(item.description)}" />
+              </div>
               <div class="field">
                 <label>${this.escapeHtml(t("imageLabel"))}</label>
                 <input type="url" data-key="imageUrl" value="${this.escapeHtml(item.imageUrl)}" />
@@ -718,10 +781,6 @@
                   <a class="image-link image-link-image" href="${this.escapeHtml(imageUrlSafe)}" target="_blank" rel="noopener noreferrer" aria-disabled="${imageUrlSafe === "#" ? "true" : "false"}"${imageUrlSafe === "#" ? ' tabindex="-1"' : ""}>${this.escapeHtml(t("openImage"))}</a>
                   <span class="image-status image-status-image">${imageUrlSafe === "#" ? this.escapeHtml(t("imageInvalid")) : this.escapeHtml(t("imageCheck"))}</span>
                 </div>
-              </div>
-              <div class="field">
-                <label>${this.escapeHtml(t("descriptionLabel"))}</label>
-                <input type="text" data-key="description" value="${this.escapeHtml(item.description)}" />
               </div>
               <div class="field">
                 <label>${this.escapeHtml(t("linkLabel"))}</label>
@@ -737,18 +796,17 @@
                   ${this.escapeHtml(t("openInNewTabLabel"))}
                 </label>
               </div>
-              <div class="toolbar">
-                <button class="danger remove-btn" type="button">${this.escapeHtml(t("removeButton"))}</button>
-              </div>
             `;
 
-            wrapper.addEventListener("dragstart", (event) => {
+            const handle = wrapper.querySelector(".drag-handle");
+
+            handle.addEventListener("dragstart", (event) => {
               this.draggedIndex = index;
               wrapper.classList.add("dragging");
               event.dataTransfer.effectAllowed = "move";
             });
 
-            wrapper.addEventListener("dragend", () => {
+            handle.addEventListener("dragend", () => {
               wrapper.classList.remove("dragging");
               this.itemsContainer.querySelectorAll(".item").forEach((node) => node.classList.remove("drag-over"));
             });

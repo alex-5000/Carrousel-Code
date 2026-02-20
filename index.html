@@ -53,8 +53,40 @@
         font-size: 0.9rem;
       }
 
-      .guide ol {
+      .guide details {
         margin: 0;
+      }
+
+      .guide summary {
+        list-style: none;
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        cursor: pointer;
+        font-size: 0.9rem;
+        margin: 0;
+        padding: 0.1rem 0;
+        user-select: none;
+      }
+
+      .guide summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .guide summary::before {
+        content: "▶";
+        font-size: 0.65rem;
+        color: var(--muted);
+        transition: transform 0.2s ease;
+        flex-shrink: 0;
+      }
+
+      .guide details[open] > summary::before {
+        transform: rotate(90deg);
+      }
+
+      .guide ol {
+        margin: 0.35rem 0 0;
         padding-left: 1.2rem;
       }
 
@@ -522,15 +554,17 @@
       </div>
       <h1 id="page-title">Générateur de code carrousel (FR / EN)</h1>
       <p id="page-intro" class="intro">Travaillez une langue à la fois. Collez le code d’origine, modifiez les bannières, puis copiez le code final pour la publication.</p>
-      <section id="guide-section" class="guide" aria-label="Guide d'utilisation">
-        <p id="guide-title"><strong>Comment procéder (sans connaissance en code) :</strong></p>
-        <ol>
-          <li id="guide-step-1">Choisissez une langue (Français ou English).</li>
-          <li id="guide-step-2">Collez le <strong>code source</strong> dans la première zone et cliquez sur <strong>Charger dans le formulaire</strong>.</li>
-          <li id="guide-step-3">Modifiez les champs (image, description, lien), ajoutez/supprimez des bannières ou glissez-déposez pour changer l'ordre.</li>
-          <li id="guide-step-4">Vérifiez le résultat dans l’aperçu en bas (défilement auto + boutons précédent/suivant).</li>
-          <li id="guide-step-5">Copiez le <strong>code final</strong> avec le bouton prévu et répétez pour l’autre langue.</li>
-        </ol>
+      <section id="guide-section" class="guide" aria-label="Guide d’utilisation">
+        <details id="guide-details">
+          <summary id="guide-title"><strong>Comment procéder (sans connaissance en code) :</strong></summary>
+          <ol>
+            <li id="guide-step-1">Choisissez une langue (Français ou English).</li>
+            <li id="guide-step-2">Collez le <strong>code source</strong> dans la première zone et cliquez sur <strong>Charger dans le formulaire</strong>.</li>
+            <li id="guide-step-3">Modifiez les champs (image, description, lien), ajoutez/supprimez des bannières ou glissez-déposez pour changer l’ordre.</li>
+            <li id="guide-step-4">Vérifiez le résultat dans l’aperçu en bas (défilement auto + boutons précédent/suivant).</li>
+            <li id="guide-step-5">Copiez le <strong>code final</strong> avec le bouton prévu et répétez pour l’autre langue.</li>
+          </ol>
+        </details>
       </section>
 
       <div class="layout" id="layout"></div>

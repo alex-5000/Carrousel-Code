@@ -57,6 +57,15 @@
         margin: 0;
       }
 
+      .guide-link-wrap {
+        margin: 0 0 0.45rem;
+      }
+
+      .guide-link-btn {
+        display: inline-block;
+        text-decoration: none;
+      }
+
       .guide summary {
         list-style: none;
         display: flex;
@@ -555,15 +564,28 @@
       <h1 id="page-title">Générateur de code carrousel (FR / EN)</h1>
       <p id="page-intro" class="intro">Travaillez une langue à la fois. Collez le code d’origine, modifiez les bannières, puis copiez le code final pour la publication.</p>
       <section id="guide-section" class="guide" aria-label="Guide d’utilisation">
+        <div class="guide-link-wrap">
+          <a
+            id="guide-full-link"
+            class="guide-link-btn primary"
+            href="https://004gc-my.sharepoint.com/:w:/g/personal/veronic_lavoie_cfp-psc_gc_ca/IQBYambgNNhPTJrzSfZhGX4XAZsTFdp615rnAZiZDhaJLTc?wdOrigin=TEAMS-MAGLEV.p2p_ns.rwc&wdExp=TEAMS-TREATMENT&wdhostclicktime=1772633184091&web=1"
+            target="_blank"
+            rel="noopener noreferrer"
+            role="button"
+          >
+            Procédure complète (document)
+          </a>
+        </div>
         <details id="guide-details">
           <summary id="guide-title"><strong>Comment procéder (sans connaissance en code) :</strong></summary>
-          <ol>
-            <li id="guide-step-1">Choisissez une langue (Français ou English).</li>
-            <li id="guide-step-2">Collez le <strong>code source</strong> dans la première zone et cliquez sur <strong>Charger dans le formulaire</strong>.</li>
-            <li id="guide-step-3">Modifiez les champs (image, description, lien), ajoutez/supprimez des bannières ou glissez-déposez pour changer l’ordre.</li>
-            <li id="guide-step-4">Vérifiez le résultat dans l’aperçu en bas (défilement auto + boutons précédent/suivant).</li>
-            <li id="guide-step-5">Copiez le <strong>code final</strong> avec le bouton prévu et répétez pour l’autre langue.</li>
-          </ol>
+          <div id="guide-content">
+            <ol>
+              <li><strong>Accéder au carrousel</strong></li>
+              <li><strong>Charger les données existantes</strong></li>
+              <li><strong>Ajouter une bannière</strong></li>
+              <li><strong>Sauvegarder les modifications</strong></li>
+            </ol>
+          </div>
         </details>
       </section>
 
@@ -619,12 +641,48 @@
           pageTitle: "Générateur de code carrousel (FR / EN)",
           pageIntro: "Travaillez une langue à la fois. Collez le code d’origine, modifiez les bannières, puis copiez le code final pour la publication.",
           guideAria: "Guide d'utilisation",
+          guideFullLinkLabel: "Procédure complète (document)",
           guideTitleHtml: "<strong>Comment procéder (sans connaissance en code) :</strong>",
-          guideStep1: "Choisissez la langue de l’outil (Français ou English).",
-          guideStep2Html: "Collez le <strong>code source</strong> dans la première zone et cliquez sur <strong>Charger dans le formulaire</strong>.",
-          guideStep3: "Modifiez les champs (image, description, lien), ajoutez/supprimez des bannières ou glissez-déposez pour changer l'ordre.",
-          guideStep4: "Vérifiez le résultat dans l’aperçu en bas (défilement auto + boutons précédent/suivant).",
-          guideStep5Html: "Copiez le <strong>code final</strong> avec le bouton prévu et répétez pour l’autre langue.",
+          guideContentHtml: `
+            <ol>
+              <li>
+                <strong>Accéder au carrousel</strong>
+                <ul>
+                  <li>Ouvrir la page d’accueil Intracom.</li>
+                  <li>Cliquer sur Modifier.</li>
+                  <li>Sélectionner la zone du carrousel.</li>
+                  <li>Cliquer sur l’icône des paramètres.</li>
+                </ul>
+              </li>
+              <li>
+                <strong>Charger les données existantes</strong>
+                <ul>
+                  <li>Copier tout le code du carrousel.</li>
+                  <li>Ouvrir l’outil CarrouselForm.html.</li>
+                  <li>Coller le code dans la section supérieure.</li>
+                  <li>Cliquer sur Charger dans le formulaire.</li>
+                </ul>
+              </li>
+              <li>
+                <strong>Ajouter une bannière</strong>
+                <ul>
+                  <li>Cliquer sur Ajouter une bannière.</li>
+                  <li>Remplir les champs :</li>
+                  <li>Description : texte affiché au survol de l’image.</li>
+                  <li>Image URL : lien direct vers l’image dans SiteAssets.</li>
+                  <li>(Optionnel) Ajouter un Lien URL vers une page web.</li>
+                </ul>
+              </li>
+              <li>
+                <strong>Sauvegarder les modifications</strong>
+                <ul>
+                  <li>Copier le nouveau code généré par l’outil.</li>
+                  <li>Coller ce code dans la boîte du carrousel dans Intracom.</li>
+                  <li>Enregistrer / Republier la page.</li>
+                </ul>
+              </li>
+            </ol>
+          `,
           hintInput: "1) Coller le code original de la langue.",
           hintReorder: "Utilisez l'icône ⠿ en haut à droite de chaque bannière pour glisser-déposer. Vous pouvez aussi ouvrir chaque image dans un nouvel onglet.",
           dragHandle: "Déplacer",
@@ -664,12 +722,48 @@
           pageTitle: "Carousel code generator (FR / EN)",
           pageIntro: "Work one language at a time. Paste the original code, edit the banners, then copy the final code for publishing.",
           guideAria: "Usage guide",
+          guideFullLinkLabel: "Complete procedure (document)",
           guideTitleHtml: "<strong>How to proceed (no coding knowledge required):</strong>",
-          guideStep1: "Choose the tool language (Français or English).",
-          guideStep2Html: "Paste the <strong>source code</strong> in the first box and click <strong>Load into the form</strong>.",
-          guideStep3: "Edit fields (image, description, link), add/remove banners, or drag and drop to change order.",
-          guideStep4: "Check the result in the preview below (auto-play + previous/next buttons).",
-          guideStep5Html: "Copy the <strong>final code</strong> with the button, then repeat for the other language section.",
+          guideContentHtml: `
+            <ol>
+              <li>
+                <strong>Access the carousel</strong>
+                <ul>
+                  <li>Open the Intracom home page.</li>
+                  <li>Click Edit.</li>
+                  <li>Select the carousel section.</li>
+                  <li>Click the settings icon.</li>
+                </ul>
+              </li>
+              <li>
+                <strong>Load existing carousel data</strong>
+                <ul>
+                  <li>Copy all carousel code.</li>
+                  <li>Open the tool CarrouselForm.html.</li>
+                  <li>Paste the code in the top section.</li>
+                  <li>Click Load into form.</li>
+                </ul>
+              </li>
+              <li>
+                <strong>Add a banner</strong>
+                <ul>
+                  <li>Click Add banner.</li>
+                  <li>Fill in the fields:</li>
+                  <li>Description: text displayed when hovering over the image.</li>
+                  <li>Image URL: direct link to the image in SiteAssets.</li>
+                  <li>(Optional) Add a Link URL to redirect to a webpage.</li>
+                </ul>
+              </li>
+              <li>
+                <strong>Save the changes</strong>
+                <ul>
+                  <li>Copy the new code generated by the tool.</li>
+                  <li>Paste it into the carousel box in Intracom.</li>
+                  <li>Save / Republish the page.</li>
+                </ul>
+              </li>
+            </ol>
+          `,
           hintInput: "1) Paste the original code for this section.",
           hintReorder: "Use the ⠿ icon at the top-right of each banner to drag and drop. You can also open each image in a new tab.",
           dragHandle: "Move",
@@ -724,12 +818,9 @@
         document.getElementById("page-intro").textContent = t("pageIntro");
         const guide = document.getElementById("guide-section");
         guide.setAttribute("aria-label", t("guideAria"));
+        document.getElementById("guide-full-link").textContent = t("guideFullLinkLabel");
         document.getElementById("guide-title").innerHTML = t("guideTitleHtml");
-        document.getElementById("guide-step-1").textContent = t("guideStep1");
-        document.getElementById("guide-step-2").innerHTML = t("guideStep2Html");
-        document.getElementById("guide-step-3").textContent = t("guideStep3");
-        document.getElementById("guide-step-4").textContent = t("guideStep4");
-        document.getElementById("guide-step-5").innerHTML = t("guideStep5Html");
+        document.getElementById("guide-content").innerHTML = t("guideContentHtml");
         document.querySelectorAll(".lang-btn").forEach((button) => {
           button.classList.toggle("active", button.dataset.uiLang === currentUiLang);
         });
